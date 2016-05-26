@@ -1,0 +1,5 @@
+conf.ini
+*.exe
+mwlog.txt
+backup/*
+lib/*

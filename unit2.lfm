@@ -1,0 +1,223 @@
+object DataModule1: TDataModule1
+  OldCreateOrder = False
+  Height = 539
+  HorizontalOffset = 1460
+  VerticalOffset = 56
+  Width = 345
+  object connMSSQL: TSQLConnector
+    Connected = False
+    LoginPrompt = False
+    KeepConnection = False
+    Transaction = tranMSSQL
+    UserName = 'prestigedomain\robin.crosbie'
+    LogEvents = []
+    ConnectorType = 'MSSQLServer'
+    left = 40
+    top = 32
+  end
+  object tranMSSQL: TSQLTransaction
+    Active = False
+    Database = connMSSQL
+    left = 40
+    top = 104
+  end
+  object connMYSQL: TMySQL55Connection
+    Connected = False
+    LoginPrompt = False
+    KeepConnection = False
+    Transaction = tranMYSQL
+    UserName = 'web117-database'
+    LogEvents = []
+    left = 104
+    top = 32
+  end
+  object tranMYSQL: TSQLTransaction
+    Active = False
+    Database = connMYSQL
+    left = 104
+    top = 104
+  end
+  object queryBrand: TSQLQuery
+    FieldDefs = <    
+      item
+        Name = 'Code'
+        Attributes = [faReadonly]
+        DataType = ftString
+        Precision = -1
+        Size = 80
+      end    
+      item
+        Name = 'Brand'
+        Attributes = [faReadonly]
+        DataType = ftString
+        Precision = -1
+        Size = 200
+      end>
+    Database = connMSSQL
+    Transaction = tranMSSQL
+    SQL.Strings = (
+      'select ''1'' as [Code], ''ALL'' as Brand'
+      'union'
+      'select distinct i.[Global Dimension 1 Code] as [Code], dv.Name as Brand from dbo.[Prestige LIVE$Item] i with (nolock)'
+      'join dbo.[Prestige LIVE$Dimension Value] dv on i.[Global Dimension 1 Code] = dv.Code'
+      'where i.[Global Dimension 1 Code] not in ('''',''REL'',''Z'') and i.Discontinued in (0,3,5,6,9) and dv.[Dimension Code] = ''PRODGRP'''
+      'order by [Code] asc'
+    )
+    Params = <>
+    left = 40
+    top = 176
+  end
+  object queryColours: TSQLQuery
+    FieldDefs = <    
+      item
+        Name = 'CODE'
+        DataType = ftString
+        Precision = -1
+        Size = 40
+      end    
+      item
+        Name = 'COLOURS'
+        Attributes = [faReadonly]
+        DataType = ftString
+        Precision = -1
+        Size = 2000
+      end>
+    Database = connMSSQL
+    Transaction = tranMSSQL
+    SQL.Strings = (
+      'select x.[Catalogue Code] as CODE, cast(z.[Colours] as varchar(500)) as COLOURS from'
+      '('
+      'select [Style Code]'
+      ', STUFF((SELECT distinct '','' + scr_.Code FROM dbo.[Prestige LIVE$Style Colour Relation] scr_ with (nolock) left join dbo.[Prestige LIVE$Item] i_ with (nolock) on scr_.[Style Code] = i_.Style and scr_.Code = i_.Colour'
+      'Where i_.discontinued in (0,3,5,6,9) and i_.[Global Dimension 1 Code] <> ''REL'' and scr_.[Style Code]=scr.[Style Code] FOR XML PATH('''')),1,1,'''') As [Colours]'
+      'from dbo.[Prestige LIVE$Style Colour Relation] scr with (nolock)'
+      'group by scr.[Style Code]'
+      ') z'
+      'right join'
+      '('
+      'select distinct sc.Code, sc.[Catalogue Code] from dbo.[Prestige LIVE$Style Code] sc with (nolock)'
+      'left join dbo.[Prestige LIVE$Item] i with (nolock) on sc.Code = i.Style'
+      'where sc.[Catalogue Code] <> '''' and i.[Global Dimension 1 Code] <> ''REL'' and (i.Discontinued = ''0'' or i.Discontinued = ''3'' or i.Discontinued = ''5'' or i.Discontinued = ''6'' or i.Discontinued = ''9'')'
+      ') x on z.[Style Code] = x.Code'
+      '--where x.[Catalogue Code] = ''jh001'''
+      'order by x.[Catalogue Code]'
+    )
+    Params = <>
+    left = 40
+    top = 248
+  end
+  object queryMYSQLupdate: TSQLQuery
+    FieldDefs = <>
+    Database = connMYSQL
+    Transaction = tranMYSQL
+    SQL.Strings = (
+      'replace into brands values (:c, :b)'
+    )
+    Params = <    
+      item
+        DataType = ftUnknown
+        Name = 'c'
+        ParamType = ptInput
+      end    
+      item
+        DataType = ftUnknown
+        Name = 'b'
+        ParamType = ptInput
+      end>
+    left = 104
+    top = 176
+  end
+  object queryStyle: TSQLQuery
+    FieldDefs = <    
+      item
+        Name = 'CODE'
+        DataType = ftString
+        Precision = -1
+        Size = 40
+      end    
+      item
+        Name = 'COLOURS'
+        Attributes = [faReadonly]
+        DataType = ftString
+        Precision = -1
+        Size = 2000
+      end>
+    Database = connMSSQL
+    Transaction = tranMSSQL
+    SQL.Strings = (
+      'select distinct sc.[Catalogue Code] as CODE, sc.Description, sc.[Fabric Type Outer] as FABRIC,'
+      'sc.[Unique Selling Point 1] as D1,'
+      'sc.[Unique Selling Point 2] as D2,'
+      'sc.[Unique Selling Point 3] as D3,'
+      'sc.[Unique Selling Point 4] as D4,'
+      'sc.[Unique Selling Point 5] as D5, 0 as PRICE, i.[Global Dimension 1 Code] as PRODUCER, sc.[Global Dimension 2 Code] as CATEGORY from dbo.[Prestige LIVE$Style Code] sc with (nolock)'
+      'left join dbo.[Prestige LIVE$Item] i with (nolock) on sc.Code = i.Style'
+      'where sc.[Catalogue Code] <> '''' and i.[Global Dimension 1 Code] <> ''REL'' and sc.[Omit from Brochure Creator] = 0 and (i.Discontinued = ''0'' or i.Discontinued = ''3'' or i.Discontinued = ''5'' or i.Discontinued = ''6'' or i.Discontinued = ''9'')'
+      'order by sc.[Catalogue Code]'
+    )
+    Params = <>
+    left = 40
+    top = 320
+  end
+  object querySizes: TSQLQuery
+    FieldDefs = <    
+      item
+        Name = 'CODE'
+        DataType = ftString
+        Precision = -1
+        Size = 40
+      end    
+      item
+        Name = 'SIZE'
+        Attributes = [faReadonly]
+        DataType = ftMemo
+        Precision = -1
+        Size = 33554432
+      end    
+      item
+        Name = 'ALTSIZE'
+        Attributes = [faReadonly]
+        DataType = ftMemo
+        Precision = -1
+        Size = 33554432
+      end>
+    Database = connMSSQL
+    Transaction = tranMSSQL
+    SQL.Strings = (
+      'use Navison'
+      ''
+      'select der_d.CODE, /*der_d.Style,*/ der_d.SIZE, replace(replace(der_d.ALTSIZE, '''''''''''', ''in''), ''"'', ''in'') as [ALTSIZE] from'
+      '('
+      'select der_c.[Catalogue Code] as [CODE], der_c.Code as [Style], der_c.SIZE,'
+      'case der_c.[ALT SIZE] when '''' then'
+      #9'case der_c.[To Fit Chest] when '''' then'
+      #9#9'case der_c.[Dress Size] when '''' then'
+      #9#9'der_c.[To Fit waist]'
+      #9#9'else der_c.[Dress Size]'
+      #9#9'end'
+      #9'else der_c.[To Fit Chest]'
+      #9'end'
+      'else der_c.[ALT SIZE]'
+      'end as [ALTSIZE]'
+      'from'
+      '(select * from'
+      '(select i.Style'
+      ', STUFF((SELECT distinct '','' + i_.Size FROM dbo.[Prestige LIVE$Item] i_ with (nolock)'
+      'Where i_.Style=i.Style FOR XML PATH('''')),1,1,'''') as SIZE'
+      ', STUFF((SELECT distinct '','' + i__.[Alt Size] FROM dbo.[Prestige LIVE$Item] i__ with (nolock)'
+      'Where i__.Style=i.Style FOR XML PATH('''')),1,1,'''') as [ALT SIZE]'
+      'from dbo.[Prestige LIVE$Item] i with (nolock)'
+      'where i.Discontinued in (0,3,5,6,9)'
+      'group by i.style) der_a'
+      'join'
+      '(select sc.[catalogue code], sc.Code, sc.[Dress Size], sc.[To Fit Chest], sc.[To Fit waist] from dbo.[Prestige LIVE$Style Code] sc with (nolock)'
+      'where sc.[Omit from Brochure Creator] = 0 and sc.[Exclude from Catalogue] = 0) der_b on der_a.Style = der_b.Code'
+      ') der_c'
+      ') der_d'
+      'order by der_d.CODE'
+    )
+    Params = <>
+    left = 40
+    top = 392
+  end
+end
