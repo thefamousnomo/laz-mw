@@ -1,7 +1,7 @@
 object Form1: TForm1
-  Left = 728
+  Left = 523
   Height = 735
-  Top = 171
+  Top = 202
   Width = 849
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsDialog
@@ -12,8 +12,8 @@ object Form1: TForm1
   LCLVersion = '1.2.6.0'
   object Memo1: TMemo
     Left = 16
-    Height = 541
-    Top = 163
+    Height = 557
+    Top = 147
     Width = 819
     Anchors = [akLeft, akRight, akBottom]
     ScrollBars = ssAutoVertical
@@ -230,6 +230,15 @@ object Form1: TForm1
     OnClick = Label1Click
     OnMouseEnter = Label1MouseEnter
     OnMouseLeave = Label1MouseLeave
+  end
+  object Button6: TButton
+    Left = 368
+    Height = 25
+    Top = 112
+    Width = 75
+    Caption = 'rgb'
+    OnClick = Button6Click
+    TabOrder = 8
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.txt'

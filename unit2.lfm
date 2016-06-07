@@ -220,4 +220,38 @@ object DataModule1: TDataModule1
     left = 40
     top = 392
   end
+  object queryRGB: TSQLQuery
+    FieldDefs = <    
+      item
+        Name = 'CODE'
+        DataType = ftString
+        Precision = -1
+        Size = 40
+      end    
+      item
+        Name = 'SIZE'
+        Attributes = [faReadonly]
+        DataType = ftMemo
+        Precision = -1
+        Size = 33554432
+      end    
+      item
+        Name = 'ALTSIZE'
+        Attributes = [faReadonly]
+        DataType = ftMemo
+        Precision = -1
+        Size = 33554432
+      end>
+    Database = connMSSQL
+    Transaction = tranMSSQL
+    SQL.Strings = (
+      'select distinct cc.Code as code, cc.Description as description, cc.[rgb (hex)] as rgb from dbo.[Prestige LIVE$Colour Code] cc with(nolock)'
+      'inner join dbo.[Prestige LIVE$Item] i with (nolock) on cc.Code = i.Colour'
+      'where LEN(cc.Code) in (2,3) and cc.Description <> ''madeira''-- and i.Discontinued in (0,3,5,6,9)-- and cc.[rgb (hex)] <> '''''
+      'order by cc.Code'
+    )
+    Params = <>
+    left = 40
+    top = 464
+  end
 end

@@ -5,8 +5,8 @@ unit Unit1;
 interface
 
 uses
-  Classes, SysUtils, sqldb, mysql56conn, mysql55conn, mssqlconn, FileUtil,
-  Forms, Controls, Graphics, Dialogs, DbCtrls, StdCtrls, ExtCtrls, unit2, inifiles;
+  Classes, SysUtils, sqldb, mysql55conn, mssqlconn, FileUtil,
+  Forms, Controls, Graphics, Dialogs, DbCtrls, StdCtrls, ExtCtrls, unit2, inifiles, windows;
 
 type
 
@@ -18,6 +18,7 @@ type
     Button3: TButton;
     Button4: TButton;
     Button5: TButton;
+    Button6: TButton;
     CheckBox1: TCheckBox;
     CheckBox2: TCheckBox;
     Image1: TImage;
@@ -29,6 +30,7 @@ type
     procedure Button3Click(Sender: TObject);
     procedure Button4Click(Sender: TObject);
     procedure Button5Click(Sender: TObject);
+    procedure Button6Click(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Label1Click(Sender: TObject);
     procedure Label1MouseEnter(Sender: TObject);
@@ -46,6 +48,7 @@ type
 var
   Form1: TForm1;
   INI: TINIFile;
+  starttime: integer;
 
 const
   nl: string = AnsiString(#13#10);
@@ -68,6 +71,7 @@ end;
 procedure TForm1.procUpdate(Sender: TObject; columns: TStringList; select: TSQLQuery; params: TStringList);
 var
   i: integer;
+  endtime: integer;
   out: string = '';
   begin
   stamp;
@@ -76,6 +80,7 @@ var
   begin
   memo1.Append('truncating ' + params[0]);
   datamodule1.connMYSQL.ExecuteDirect('truncate table ' + params[0] + ';');
+  datamodule1.tranMYSQL.CommitRetaining;
   memo1.Append('truncated!' + nl);
   end;
   with datamodule1.connMSSQL do
@@ -113,7 +118,7 @@ var
   end;
   datamodule1.tranMYSQL.Commit;
   memo1.Append(nl + inttostr(select.RecordCount) + ' records updated');
-  memo1.Append(nl + '-----' + nl);
+  memo1.Append(nl + '-----');
   select.Close;
   with datamodule1 do
   begin
@@ -121,6 +126,9 @@ var
     connMSSQL.Close;
     connMYSQL.Close;
   end;
+  endtime:=getTickCount-starttime;
+  memo1.Append(floattostr(int(endtime/1000/60)) + ' mins, ' + floattostr((endtime mod 60000)/1000) + ' secs');
+  memo1.Append(nl + '-----' + nl);
 end;
 
 procedure TForm1.logSQL(Sender: TSQLConnection; EventType: TDBEventType;
@@ -133,6 +141,7 @@ procedure TForm1.Button1Click(Sender: TObject);
 var
   columns, params: TStringList;
 begin
+  starttime:=getTickCount;
   columns:=TStringList.Create;
   columns.Add('code');
   columns.Add('brand');
@@ -148,6 +157,7 @@ procedure TForm1.Button2Click(Sender: TObject);
 var
   columns, params: TStringList;
 begin
+  starttime:=getTickCount;
   columns:=TStringList.Create;
   columns.Add('CODE');
   columns.Add('COLOURS');
@@ -163,6 +173,7 @@ procedure TForm1.Button3Click(Sender: TObject);
 var
   columns, params: TStringList;
 begin
+  starttime:=getTickCount;
   columns:=TStringList.Create;
   with columns do
   begin
@@ -193,6 +204,7 @@ procedure TForm1.Button4Click(Sender: TObject);
 var
   columns, params: TStringList;
 begin
+  starttime:=getTickCount;
   columns:=TStringList.Create;
   with columns do
   begin
@@ -212,11 +224,40 @@ params.Free;
 end;
 
 procedure TForm1.Button5Click(Sender: TObject);
+var
+  starttime_all, endtime_all: integer;
 begin
+  starttime:=getTickCount;
+  starttime_all:=getTickCount;
   Button1Click(button1);
   Button2Click(button2);
   Button3Click(button3);
   Button4Click(button4);
+  Button6Click(button6);
+  endtime_all:=getTickCount-starttime_all;
+  memo1.Append(floattostr(int(endtime_all/1000/60)) + ' mins, ' + floattostr((endtime_all mod 60000)/1000) + ' secs');
+  memo1.Append(nl + '-----' + nl);
+end;
+
+procedure TForm1.Button6Click(Sender: TObject);
+var
+  columns, params: TStringList;
+begin
+  starttime:=getTickCount;
+  columns:=TStringList.Create;
+  with columns do
+  begin
+  Add('code');
+  Add('description');
+  Add('rgb');
+  end;
+  params:=TStringList.Create;
+  with params do
+  begin
+  Add('rgb');
+  Add('(:code, :description, :rgb)');
+  end;
+procUpdate(button6, columns, datamodule1.queryRGB, params);
 end;
 
 procedure TForm1.FormShow(Sender: TObject);

@@ -16,6 +16,7 @@ type
     connMYSQL: TMySQL55Connection;
     queryBrand: TSQLQuery;
     queryColours: TSQLQuery;
+    queryRGB: TSQLQuery;
     queryStyle: TSQLQuery;
     queryMYSQLupdate: TSQLQuery;
     querySizes: TSQLQuery;
