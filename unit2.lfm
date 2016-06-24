@@ -1,6 +1,6 @@
 object DataModule1: TDataModule1
   OldCreateOrder = False
-  Height = 539
+  Height = 616
   HorizontalOffset = 1460
   VerticalOffset = 56
   Width = 345
@@ -253,5 +253,67 @@ object DataModule1: TDataModule1
     Params = <>
     left = 40
     top = 464
+  end
+  object queryCategory: TSQLQuery
+    FieldDefs = <    
+      item
+        Name = 'CODE'
+        DataType = ftString
+        Precision = -1
+        Size = 40
+      end    
+      item
+        Name = 'SIZE'
+        Attributes = [faReadonly]
+        DataType = ftMemo
+        Precision = -1
+        Size = 33554432
+      end    
+      item
+        Name = 'ALTSIZE'
+        Attributes = [faReadonly]
+        DataType = ftMemo
+        Precision = -1
+        Size = 33554432
+      end>
+    Database = connMSSQL
+    Transaction = tranMSSQL
+    SQL.Strings = (
+      'select'
+      ' case z.CATEGORY'
+      ' when ''A'' then ''ALL'''
+      ' else z.CATEGORY'
+      ' end as CATEGORY,'
+      ' case z.CATNAME'
+      ' when ''ALL'' then ''ALL CATEGORIES'''
+      ' else z.CATNAME'
+      ' end as CATNAME'
+      ' , z.PIC, z.RANK from'
+      '('
+      'select dv.Code as CATEGORY,'
+      'case RIGHT(dv.code, 2)'
+      'when ''00'' then ''---''+ltrim(dv.name)'
+      'else ltrim(dv.Name)'
+      'end as CATNAME, isnull(i.Style, '''') as PIC, '''' as RANK,'
+      'LEFT(dv.Code,2) as PRE'
+      'from dbo.[Prestige LIVE$Dimension Value] dv with(nolock)'
+      'outer apply'
+      '('
+      'select top 1 style from dbo.[Prestige LIVE$Item] with(nolock)'
+      'where dv.Code = [Global Dimension 2 Code]'
+      ') i'
+      'where dv.[Dimension Code] = ''prodanalysis'' and dv.Blocked = 0 and LEFT(dv.Code,1) <> ''z'' and RIGHT(dv.code, 2) <> ''99'' and LEFT(dv.code, 2) <> ''br'' and dv.Name <> '''''
+      ') z'
+      'left join'
+      '('
+      'select left(i.[Global Dimension 2 Code],2) as COMP, count(i.Style) as C from dbo.[Prestige LIVE$Item] i with(nolock)'
+      'group by left(i.[Global Dimension 2 Code],2)'
+      ') x on z.PRE = x.COMP'
+      'where (z.CATEGORY = ''a'' and x.C is null) or (LEFT(z.CATNAME,3) <> ''---'' and z.PIC <> '''') or (LEFT(z.CATNAME,3) = ''---'' and x.COMP is not null)'
+      'order by z.CATEGORY'
+    )
+    Params = <>
+    left = 40
+    top = 536
   end
 end

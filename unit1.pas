@@ -19,6 +19,7 @@ type
     Button4: TButton;
     Button5: TButton;
     Button6: TButton;
+    Button7: TButton;
     CheckBox1: TCheckBox;
     CheckBox2: TCheckBox;
     Image1: TImage;
@@ -31,6 +32,7 @@ type
     procedure Button4Click(Sender: TObject);
     procedure Button5Click(Sender: TObject);
     procedure Button6Click(Sender: TObject);
+    procedure Button7Click(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Label1Click(Sender: TObject);
     procedure Label1MouseEnter(Sender: TObject);
@@ -234,6 +236,7 @@ begin
   Button3Click(button3);
   Button4Click(button4);
   Button6Click(button6);
+  Button7Click(button7);
   endtime_all:=getTickCount-starttime_all;
   memo1.Append(floattostr(int(endtime_all/1000/60)) + ' mins, ' + floattostr((endtime_all mod 60000)/1000) + ' secs');
   memo1.Append(nl + '-----' + nl);
@@ -258,6 +261,48 @@ begin
   Add('(:code, :description, :rgb)');
   end;
 procUpdate(button6, columns, datamodule1.queryRGB, params);
+end;
+
+procedure TForm1.Button7Click(Sender: TObject);
+var
+  columns, params: TStringList;
+  errors: integer;
+begin
+  starttime:=getTickCount;
+  columns:=TStringList.Create;
+  with columns do
+  begin
+  Add('category');
+  Add('catname');
+  Add('pic');
+  Add('rank');
+  end;
+  params:=TStringList.Create;
+  with params do
+  begin
+  Add('tmp_cat');
+  Add('(:category, :catname, :pic, :rank)');
+  end;
+procUpdate(button7, columns, datamodule1.queryCategory, params);
+datamodule1.connMYSQL.ExecuteDirect('truncate table new_cat;');
+datamodule1.connMYSQL.ExecuteDirect('insert into new_cat SELECT tc.CATEGORY, tc.CATNAME, tc.PIC, ifnull(c.RANK, 99999) as RANK FROM tmp_cat tc left join category c on tc.category = c.category;');
+datamodule1.tranMYSQL.Commit;
+datamodule1.queryMYSQLupdate.SQL.Text:='select count(*) as ERRORS from new_cat where rank = 99999;';
+datamodule1.queryMYSQLupdate.Open;
+datamodule1.queryMYSQLupdate.First;
+errors:=datamodule1.queryMYSQLupdate.FieldByName('ERRORS').AsInteger;
+if errors > 0 then
+begin
+memo1.Append('There are ' + inttostr(errors) + ' errors.' + nl);
+memo1.Append('Please update 99999s in new_cat to correct rank and write to category table manually.');
+end
+else
+begin
+datamodule1.connMYSQL.ExecuteDirect('truncate table category;');
+datamodule1.connMYSQL.ExecuteDirect('insert into category select * from new_cat;');
+datamodule1.tranMYSQL.Commit;
+end;
+datamodule1.queryMYSQLupdate.Close;
 end;
 
 procedure TForm1.FormShow(Sender: TObject);

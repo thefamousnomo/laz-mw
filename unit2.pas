@@ -17,6 +17,7 @@ type
     queryBrand: TSQLQuery;
     queryColours: TSQLQuery;
     queryRGB: TSQLQuery;
+    queryCategory: TSQLQuery;
     queryStyle: TSQLQuery;
     queryMYSQLupdate: TSQLQuery;
     querySizes: TSQLQuery;
