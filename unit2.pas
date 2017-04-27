@@ -15,6 +15,7 @@ type
     connMSSQL: TSQLConnector;
     connMYSQL: TMySQL55Connection;
     queryBrand: TSQLQuery;
+    querySupplier: TSQLQuery;
     queryColours: TSQLQuery;
     queryRGB: TSQLQuery;
     queryCategory: TSQLQuery;

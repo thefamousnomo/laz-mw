@@ -251,6 +251,15 @@ object Form1: TForm1
     OnClick = Button7Click
     TabOrder = 9
   end
+  object Button8: TButton
+    Left = 544
+    Height = 25
+    Top = 112
+    Width = 75
+    Caption = 'supplier'
+    OnClick = Button8Click
+    TabOrder = 10
+  end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.txt'
     FileName = 'mwlog'

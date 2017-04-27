@@ -20,6 +20,7 @@ type
     Button5: TButton;
     Button6: TButton;
     Button7: TButton;
+    Button8: TButton;
     CheckBox1: TCheckBox;
     CheckBox2: TCheckBox;
     Image1: TImage;
@@ -33,6 +34,7 @@ type
     procedure Button5Click(Sender: TObject);
     procedure Button6Click(Sender: TObject);
     procedure Button7Click(Sender: TObject);
+    procedure Button8Click(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Label1Click(Sender: TObject);
     procedure Label1MouseEnter(Sender: TObject);
@@ -237,6 +239,7 @@ begin
   Button4Click(button4);
   Button6Click(button6);
   Button7Click(button7);
+  Button8Click(button8);
   endtime_all:=getTickCount-starttime_all;
   memo1.Append(floattostr(int(endtime_all/1000/60)) + ' mins, ' + floattostr((endtime_all mod 60000)/1000) + ' secs');
   memo1.Append(nl + '-----' + nl);
@@ -303,6 +306,28 @@ datamodule1.connMYSQL.ExecuteDirect('insert into category select * from new_cat;
 datamodule1.tranMYSQL.Commit;
 end;
 datamodule1.queryMYSQLupdate.Close;
+end;
+
+procedure TForm1.Button8Click(Sender: TObject);
+var
+  columns, params: TStringList;
+begin
+  starttime:=getTickCount;
+  columns:=TStringList.Create;
+  with columns do
+  begin
+  Add('PRODUCER');
+  Add('PRODNAME');
+  end;
+  params:=TStringList.Create;
+  with params do
+  begin
+  Add('producer');
+  Add('(:PRODUCER, :PRODNAME)');
+  end;
+procUpdate(button8, columns, datamodule1.querySupplier, params);
+columns.Free;
+params.Free;
 end;
 
 procedure TForm1.FormShow(Sender: TObject);

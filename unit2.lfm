@@ -1,6 +1,6 @@
 object DataModule1: TDataModule1
   OldCreateOrder = False
-  Height = 616
+  Height = 723
   HorizontalOffset = 1460
   VerticalOffset = 56
   Width = 345
@@ -300,7 +300,7 @@ object DataModule1: TDataModule1
       'outer apply'
       '('
       'select top 1 style from dbo.[Prestige LIVE$Item] with(nolock)'
-      'where dv.Code = [Global Dimension 2 Code]'
+      'where dv.Code = [Global Dimension 2 Code] and discontinued in (0,3,6,9,10,11)'
       ') i'
       'where dv.[Dimension Code] = ''prodanalysis'' and dv.Blocked = 0 and LEFT(dv.Code,1) <> ''z'' and RIGHT(dv.code, 2) <> ''99'' and LEFT(dv.code, 2) <> ''br'' and dv.Name <> '''''
       ') z'
@@ -315,5 +315,37 @@ object DataModule1: TDataModule1
     Params = <>
     left = 40
     top = 536
+  end
+  object querySupplier: TSQLQuery
+    FieldDefs = <    
+      item
+        Name = 'CODE'
+        DataType = ftString
+        Precision = -1
+        Size = 40
+      end    
+      item
+        Name = 'SIZE'
+        Attributes = [faReadonly]
+        DataType = ftMemo
+        Precision = -1
+        Size = 33554432
+      end    
+      item
+        Name = 'ALTSIZE'
+        Attributes = [faReadonly]
+        DataType = ftMemo
+        Precision = -1
+        Size = 33554432
+      end>
+    Database = connMSSQL
+    Transaction = tranMSSQL
+    SQL.Strings = (
+      'select dv.Code as PRODUCER, dv.Name as PRODNAME from dbo.[Prestige LIVE$Dimension Value] dv with(nolock)'
+      'where dv.[Dimension Code] = ''PRODGRP'' and dv.[Dimension Value Type] = 0'
+    )
+    Params = <>
+    left = 40
+    top = 608
   end
 end
