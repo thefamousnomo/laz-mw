@@ -189,15 +189,23 @@ begin
     Add('D3');
     Add('D4');
     Add('D5');
+    Add('D6');
+    Add('D7');
+    Add('D8');
+    Add('D9');
+    Add('D10');
+    Add('D11');
+    Add('D12');
     Add('Price');
     Add('Producer');
     Add('Category');
+    Add('Weight');
   end;
   params:=TStringList.Create;
   with params do
   begin
     Add('style');
-    Add('(:CODE, :description, :fabric, :d1, :d2, :d3, :d4, :d5, :price, :producer, :category)');
+    Add('(:CODE, :description, :fabric, :d1, :d2, :d3, :d4, :d5, :d6, :d7, :d8, :d9, :d10, :d11, :d12, :price, :producer, :category, :weight)');
   end;
   procUpdate(button3, columns, datamodule1.queryStyle, params);
   columns.Free;
