@@ -1,6 +1,6 @@
 object DataModule1: TDataModule1
   OldCreateOrder = False
-  Height = 723
+  Height = 831
   HorizontalOffset = 1460
   VerticalOffset = 56
   Width = 345
@@ -160,7 +160,7 @@ object DataModule1: TDataModule1
       'sc.[Unique Selling Point 12] as D12,'
       '0 as PRICE, i.[Global Dimension 1 Code] as PRODUCER, sc.[Global Dimension 2 Code] as CATEGORY, sc.[Fabric Weight GSM] as WEIGHT from dbo.[Prestige LIVE$Style Code] sc with (nolock)'
       'left join dbo.[Prestige LIVE$Item] i with (nolock) on sc.Code = i.Style'
-      'where sc.[Catalogue Code] <> '''' and i.[Global Dimension 1 Code] <> ''REL'' and sc.[Omit from Brochure Creator] = 0 and (i.Discontinued = ''0'' or i.Discontinued = ''3'' or i.Discontinued = ''5'' or i.Discontinued = ''6'' or i.Discontinued = ''9'')'
+      'where sc.[Catalogue Code] <> '''' and i.[Global Dimension 1 Code] <> ''REL'' and (sc.[Omit from Brochure Creator] = 0 AND sc.[Exclude from Catalogue] = 0) and (i.Discontinued = ''0'' or i.Discontinued = ''3'' or i.Discontinued = ''5'' or i.Discontinued = ''6'' or i.Discontinued = ''9'')'
       'order by sc.[Catalogue Code]'
     )
     Params = <>
@@ -192,12 +192,11 @@ object DataModule1: TDataModule1
     Database = connMSSQL
     Transaction = tranMSSQL
     SQL.Strings = (
-      'use Navison'
-      ''
       'select der_d.CODE, /*der_d.Style,*/ der_d.SIZE, replace(replace(der_d.ALTSIZE, '''''''''''', ''in''), ''"'', ''in'') as [ALTSIZE] from'
       '('
       'select der_c.[Catalogue Code] as [CODE], der_c.Code as [Style], der_c.SIZE,'
-      'case der_c.[ALT SIZE] when '''' then'
+      'case'
+      #9'when der_c.[ALT SIZE] like ''%=,%'' then'
       #9'case der_c.[To Fit Chest] when '''' then'
       #9#9'case der_c.[Dress Size] when '''' then'
       #9#9'der_c.[To Fit waist]'
@@ -210,10 +209,14 @@ object DataModule1: TDataModule1
       'from'
       '(select * from'
       '(select i.Style'
-      ', STUFF((SELECT distinct '','' + i_.Size FROM dbo.[Prestige LIVE$Item] i_ with (nolock)'
-      'Where i_.Style=i.Style FOR XML PATH('''')),1,1,'''') as SIZE'
-      ', STUFF((SELECT distinct '','' + i__.[Alt Size] FROM dbo.[Prestige LIVE$Item] i__ with (nolock)'
-      'Where i__.Style=i.Style FOR XML PATH('''')),1,1,'''') as [ALT SIZE]'
+      ', STUFF((SELECT distinct '',''+cast(sc.[Default Rank] as varchar(5)) + ''='' + i_.Size FROM dbo.[Prestige LIVE$Item] i_ with (nolock)'
+      'join dbo.[Prestige LIVE$Size Code] sc with(nolock) on i_.Size = sc.Code'
+      'Where i_.Style=i.Style'
+      'FOR XML PATH('''')),1,1,'''') as SIZE'
+      ', STUFF((SELECT distinct '',''+cast(sc_.[Default Rank] as varchar(5)) + ''='' + i__.[Alt Size] FROM dbo.[Prestige LIVE$Item] i__ with (nolock)'
+      'join dbo.[Prestige LIVE$Size Code] sc_ with(nolock) on i__.Size = sc_.Code'
+      'Where i__.Style=i.Style'
+      'FOR XML PATH('''')),1,1,'''') as [ALT SIZE]'
       'from dbo.[Prestige LIVE$Item] i with (nolock)'
       'where i.Discontinued in (0,3,5,6,9)'
       'group by i.style) der_a'
@@ -228,7 +231,7 @@ object DataModule1: TDataModule1
     left = 40
     top = 392
   end
-  object queryRGB: TSQLQuery
+  object queryRGB2: TSQLQuery
     FieldDefs = <    
       item
         Name = 'CODE'
@@ -255,12 +258,12 @@ object DataModule1: TDataModule1
     SQL.Strings = (
       'select distinct cc.Code as code, cc.Description as description, cc.[rgb (hex)] as rgb from dbo.[Prestige LIVE$Colour Code] cc with(nolock)'
       'inner join dbo.[Prestige LIVE$Item] i with (nolock) on cc.Code = i.Colour'
-      'where LEN(cc.Code) in (2,3) and cc.Description <> ''madeira''-- and i.Discontinued in (0,3,5,6,9)-- and cc.[rgb (hex)] <> '''''
+      'where LEN(cc.Code) in (2,3) and cc.Description <> ''madeira'' and cc.[RGB (Hex)] like ''#%'' and cc.[In Use] = 1-- and i.Discontinued in (0,3,5,6,9)-- and cc.[rgb (hex)] <> '''''
       'order by cc.Code'
     )
     Params = <>
-    left = 40
-    top = 464
+    left = 112
+    top = 536
   end
   object queryCategory: TSQLQuery
     FieldDefs = <    
@@ -308,7 +311,8 @@ object DataModule1: TDataModule1
       'outer apply'
       '('
       'select top 1 style from dbo.[Prestige LIVE$Item] with(nolock)'
-      'where dv.Code = [Global Dimension 2 Code] and discontinued in (0,3,6,9,10,11)'
+      '--where dv.Code = [Global Dimension 2 Code] and discontinued in (0,3,6,9,10,11)'
+      'where dv.Code = [Global Dimension 2 Code] and discontinued in (0)'
       ') i'
       'where dv.[Dimension Code] = ''prodanalysis'' and dv.Blocked = 0 and LEFT(dv.Code,1) <> ''z'' and RIGHT(dv.code, 2) <> ''99'' and LEFT(dv.code, 2) <> ''br'' and dv.Name <> '''''
       ') z'
@@ -355,5 +359,157 @@ object DataModule1: TDataModule1
     Params = <>
     left = 40
     top = 608
+  end
+  object queryCross: TSQLQuery
+    FieldDefs = <    
+      item
+        Name = 'CODE'
+        DataType = ftString
+        Precision = -1
+        Size = 40
+      end    
+      item
+        Name = 'SIZE'
+        Attributes = [faReadonly]
+        DataType = ftMemo
+        Precision = -1
+        Size = 33554432
+      end    
+      item
+        Name = 'ALTSIZE'
+        Attributes = [faReadonly]
+        DataType = ftMemo
+        Precision = -1
+        Size = 33554432
+      end>
+    Database = connMSSQL
+    Transaction = tranMSSQL
+    SQL.Strings = (
+      'select sc.Code as style, sc.[Catalogue Code] as catalogue_code from dbo.[Prestige LIVE$Style Code] sc with(nolock)'
+      'where sc.Code <> '''' and sc.[Catalogue Code] <> '''' and (sc.[Omit from Brochure Creator] = 0 AND sc.[Exclude from Catalogue] = 0)'
+      'order by sc.Code asc'
+    )
+    Params = <>
+    left = 40
+    top = 688
+  end
+  object queryRGB: TSQLQuery
+    FieldDefs = <    
+      item
+        Name = 'CODE'
+        DataType = ftString
+        Precision = -1
+        Size = 40
+      end    
+      item
+        Name = 'SIZE'
+        Attributes = [faReadonly]
+        DataType = ftMemo
+        Precision = -1
+        Size = 33554432
+      end    
+      item
+        Name = 'ALTSIZE'
+        Attributes = [faReadonly]
+        DataType = ftMemo
+        Precision = -1
+        Size = 33554432
+      end>
+    Database = connMSSQL
+    Transaction = tranMSSQL
+    SQL.Strings = (
+      'select distinct cc.Code as code, cc.Description as description, cc.[rgb (hex)] as rgb from dbo.[Prestige LIVE$Colour Code] cc with(nolock)'
+      'inner join dbo.[Prestige LIVE$Item] i with (nolock) on cc.Code = i.Colour'
+      '--where LEN(cc.Code) in (2,3) and cc.Description <> ''madeira''-- and i.Discontinued in (0,3,5,6,9)-- and cc.[rgb (hex)] <> '''''
+      'where cc.Description <> ''madeira''-- and i.Discontinued in (0,3,5,6,9)-- and cc.[rgb (hex)] <> '''''
+      'order by cc.Code'
+    )
+    Params = <>
+    left = 40
+    top = 464
+  end
+  object queryPrice: TSQLQuery
+    FieldDefs = <    
+      item
+        Name = 'CODE'
+        DataType = ftString
+        Precision = -1
+        Size = 40
+      end    
+      item
+        Name = 'SIZE'
+        Attributes = [faReadonly]
+        DataType = ftMemo
+        Precision = -1
+        Size = 33554432
+      end    
+      item
+        Name = 'ALTSIZE'
+        Attributes = [faReadonly]
+        DataType = ftMemo
+        Precision = -1
+        Size = 33554432
+      end>
+    Database = connMSSQL
+    Transaction = tranMSSQL
+    SQL.Strings = (
+      ';WITH [Price] (No, CTN, PCK, SNG)'
+      'AS'
+      '('
+      #9'SELECT'#9'*'
+      #9'FROM'
+      #9'('
+      #9#9'SELECT'#9'sp.[Item No_],'
+      #9#9#9#9'sp.[UOM Code],'
+      #9#9#9#9'CAST(FLOOR(sp.[Minimum Quantity]) AS VARCHAR(4)) + ''='' + CAST(CAST(sp.[Unit Price] AS MONEY) AS VARCHAR(6))'#9'AS [Detail]'
+      #9#9'FROM dbo.[Prestige LIVE$Sales Price] AS sp WITH(NOLOCK)'
+      #9#9'WHERE'#9'sp.[Currency Code] = '''''
+      #9') AS sp'
+      #9'PIVOT'#9'('
+      #9#9'MAX(sp.[Detail])'
+      #9#9'FOR sp.[UOM Code] IN (CTN,PCK,SNG)'
+      #9#9#9') AS pivMQ'
+      '),'
+      'Size (Style, Size, Rank)'
+      'AS'
+      '('
+      #9'SELECT'#9'ssr.[Style Code],'
+      #9#9#9'ssr.[Size Group],'
+      #9#9#9'MIN(sc.[Default Rank])'
+      #9'FROM dbo.[Prestige LIVE$Style Size Relation] AS ssr WITH(NOLOCK)'
+      #9'JOIN dbo.[Prestige LIVE$Size Code] AS sc WITH(NOLOCK)'
+      #9#9'ON ssr.[Size Code] = SC.Code'
+      #9'GROUP BY'#9'ssr.[Style Code],'
+      #9#9#9#9'ssr.[Size Group]'
+      ')'
+      ''
+      'SELECT DISTINCT'#9'i.Style,'
+      #9#9#9#9'ssr.[Size Group]'#9'AS [Size],'
+      #9#9#9#9'scr.[Colour Groups] AS [Colour],'
+      #9#9#9#9'[Price].CTN,'
+      #9#9#9#9'[Price].PCK,'
+      #9#9#9#9'[Price].SNG,'
+      #9#9#9#9'Size.Rank'
+      'FROM dbo.[Prestige LIVE$Item] AS i WITH(NOLOCK)'
+      'JOIN dbo.[Prestige LIVE$Style Code] AS sc WITH(NOLOCK)'
+      #9'ON'#9'i.Style = sc.Code'
+      #9'AND ( sc.[Exclude from Catalogue] <> 1 AND sc.[Omit from Brochure Creator] <> 1 )'
+      'LEFT JOIN dbo.[Prestige LIVE$Style Size Relation] AS ssr WITH(NOLOCK)'
+      #9'ON'#9'i.Style = ssr.[Style Code]'
+      #9'AND i.Size = ssr.[Size Code]'
+      'LEFT JOIN dbo.[Prestige LIVE$Style Colour Relation] AS scr WITH(NOLOCK)'
+      #9'ON'#9'i.Style = scr.[Style Code]'
+      #9'AND i.Colour = scr.Code'
+      'LEFT JOIN Size'
+      #9'ON'#9'i.Style = Size.Style'
+      #9'AND ssr.[Size Group] = Size.Size'
+      'LEFT JOIN [Price]'
+      #9'ON i.No_ = [Price].No'
+      'ORDER BY'#9'i.Style,'
+      #9#9#9'size.Rank'
+    )
+    Params = <>
+    left = 40
+    top = 760
   end
 end

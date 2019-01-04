@@ -1,19 +1,19 @@
 object Form1: TForm1
-  Left = 523
-  Height = 735
-  Top = 202
+  Left = 594
+  Height = 734
+  Top = 206
   Width = 849
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsDialog
   Caption = 'Middleware'
-  ClientHeight = 735
+  ClientHeight = 734
   ClientWidth = 849
   OnShow = FormShow
   LCLVersion = '1.2.6.0'
   object Memo1: TMemo
     Left = 16
     Height = 557
-    Top = 147
+    Top = 146
     Width = 819
     Anchors = [akLeft, akRight, akBottom]
     ScrollBars = ssAutoVertical
@@ -259,6 +259,24 @@ object Form1: TForm1
     Caption = 'supplier'
     OnClick = Button8Click
     TabOrder = 10
+  end
+  object Button9: TButton
+    Left = 632
+    Height = 25
+    Top = 112
+    Width = 75
+    Caption = 'cross ref'
+    OnClick = Button9Click
+    TabOrder = 11
+  end
+  object Button10: TButton
+    Left = 720
+    Height = 25
+    Top = 112
+    Width = 75
+    Caption = 'pricing'
+    OnClick = Button10Click
+    TabOrder = 12
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.txt'

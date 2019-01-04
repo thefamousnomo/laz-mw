@@ -14,6 +14,7 @@ type
 
   TForm1 = class(TForm)
     Button1: TButton;
+    Button10: TButton;
     Button2: TButton;
     Button3: TButton;
     Button4: TButton;
@@ -21,12 +22,14 @@ type
     Button6: TButton;
     Button7: TButton;
     Button8: TButton;
+    Button9: TButton;
     CheckBox1: TCheckBox;
     CheckBox2: TCheckBox;
     Image1: TImage;
     Label1: TLabel;
     Memo1: TMemo;
     SaveDialog1: TSaveDialog;
+    procedure Button10Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
@@ -35,6 +38,7 @@ type
     procedure Button6Click(Sender: TObject);
     procedure Button7Click(Sender: TObject);
     procedure Button8Click(Sender: TObject);
+    procedure Button9Click(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Label1Click(Sender: TObject);
     procedure Label1MouseEnter(Sender: TObject);
@@ -248,6 +252,8 @@ begin
   Button6Click(button6);
   Button7Click(button7);
   Button8Click(button8);
+  Button9Click(button9);
+  Button10Click(button10);
   endtime_all:=getTickCount-starttime_all;
   memo1.Append(floattostr(int(endtime_all/1000/60)) + ' mins, ' + floattostr((endtime_all mod 60000)/1000) + ' secs');
   memo1.Append(nl + '-----' + nl);
@@ -334,6 +340,55 @@ begin
   Add('(:PRODUCER, :PRODNAME)');
   end;
 procUpdate(button8, columns, datamodule1.querySupplier, params);
+columns.Free;
+params.Free;
+end;
+
+procedure TForm1.Button9Click(Sender: TObject);
+var
+  columns, params: TStringList;
+begin
+  starttime:=getTickCount;
+  columns:=TStringList.Create;
+  with columns do
+  begin
+  Add('style');
+  Add('catalogue_code');
+  end;
+  params:=TStringList.Create;
+  with params do
+  begin
+  Add('catalogue_code');
+  Add('(:style, :catalogue_code)');
+  end;
+procUpdate(button9, columns, datamodule1.queryCross, params);
+columns.Free;
+params.Free;
+end;
+
+procedure TForm1.Button10Click(Sender: TObject);
+var
+  columns, params: TStringList;
+begin
+  starttime:=getTickCount;
+  columns:=TStringList.Create;
+  with columns do
+  begin
+  Add('Style');
+  Add('Size');
+  Add('Colour');
+  Add('CTN');
+  Add('PCK');
+  Add('SNG');
+  Add('Rank');
+  end;
+  params:=TStringList.Create;
+  with params do
+  begin
+  Add('pricing');
+  Add('(:Style, :Size, :Colour, :CTN, :PCK, :SNG, :Rank)');
+  end;
+procUpdate(button10, columns, datamodule1.queryPrice, params);
 columns.Free;
 params.Free;
 end;
