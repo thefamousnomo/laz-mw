@@ -30,6 +30,7 @@ type
     Label1: TLabel;
     Memo1: TMemo;
     SaveDialog1: TSaveDialog;
+    procedure FormActivate(Sender: TObject);
     procedure pricingClick(Sender: TObject);
     procedure accreditationClick(Sender: TObject);
     procedure brandsClick(Sender: TObject);
@@ -45,7 +46,7 @@ type
     procedure Label1Click(Sender: TObject);
     procedure Label1MouseEnter(Sender: TObject);
     procedure Label1MouseLeave(Sender: TObject);
-    procedure procUpdate(Sender: TObject; columns: TStringList; select: TSQLQuery; params: TStringList);
+    procedure procUpdate(Sender: TObject; columns: TStringList; select: TSQLQuery; params: TStringList; comMax: integer = 5000);
     procedure logSQL(Sender: TSQLConnection; EventType: TDBEventType;
       const Msg: String);
     procedure stamp;
@@ -79,7 +80,7 @@ begin
   memo1.Append(formatdatetime('DD MM YYYY hh:mm:ss', st) + nl + '-----' + nl);
 end;
 
-procedure TForm1.procUpdate(Sender: TObject; columns: TStringList; select: TSQLQuery; params: TStringList);
+procedure TForm1.procUpdate(Sender: TObject; columns: TStringList; select: TSQLQuery; params: TStringList; comMax: integer = 5000);
 var
   i: integer;
   endtime: integer;
@@ -119,10 +120,10 @@ var
   while (not select.EOF) do begin
     for i := 0 to columns.Count - 1 do
     begin
-      out := out + ',''' +  select.FieldByName(columns[i]).AsString + '''';
+      out := out + ',''' +  StringReplace(select.FieldByName(columns[i]).AsString,'''','\''',[rfReplaceAll]) + '''';
     end;
     out := Copy(out,2,length(out));
-    if ( select.RecNo = 1 ) OR ( select.RecNo mod 1000 = 0 ) then
+    if ( select.RecNo = 1 ) OR ( select.RecNo mod comMax = 0 ) then
        out := '(' + out + ')'
     else
        out := ',(' + out + ')';
@@ -131,10 +132,10 @@ var
     out:='';
     select.Next;
     if (select.RecNo mod 10 = 0) then application.ProcessMessages;
-    if select.RecNo mod 1000 = 0 then
+    if select.RecNo mod comMax = 0 then
     begin
         datamodule1.queryMYSQLupdate.ExecSQL;
-        datamodule1.tranMYSQL.Commit;
+        datamodule1.tranMYSQL.CommitRetaining;
         datamodule1.queryMYSQLupdate.SQL.Text := 'replace into ' + params[0] + ' values ';
     end;
   end;
@@ -407,6 +408,25 @@ begin
 procUpdate(pricing, columns, datamodule1.queryPrice, params);
 columns.Free;
 params.Free;
+end;
+
+procedure TForm1.FormActivate(Sender: TObject);
+var i: integer;
+begin
+     if Application.HasOption('module') then
+     begin
+           memo1.Append('Auto run '+Application.GetOptionValue('module') + nl);
+           ButtonName := Form1.FindComponent(Application.GetOptionValue('module')) as TButton;
+           ButtonName.Click;
+           Memo1.Lines.SaveToFile(Application.GetOptionValue('module') + '.txt');
+           for i:= 5 downto 0 do
+           begin
+                memo1.Append('Closing in '+ IntToStr(i) +' seconds...');
+                sleep(1000);
+           end;
+           Application.Terminate;
+           exit;
+     end;
 end;
 
 procedure TForm1.accreditationClick(Sender: TObject);

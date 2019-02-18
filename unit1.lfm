@@ -1,13 +1,14 @@
 object Form1: TForm1
-  Left = 477
+  Left = 474
   Height = 734
-  Top = 112
+  Top = 235
   Width = 953
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsDialog
   Caption = 'Middleware'
   ClientHeight = 734
   ClientWidth = 953
+  OnActivate = FormActivate
   OnShow = FormShow
   LCLVersion = '1.2.6.0'
   object Memo1: TMemo
